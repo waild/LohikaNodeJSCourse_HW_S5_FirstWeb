@@ -1,97 +1,95 @@
-const reservationRepo = require('../repositories/reservationRepo');
 const Ajv = require('ajv');
+const reservationRepo = require('../repositories/reservationRepo');
+
 const ajv = new Ajv();
 
 const reservationSchema = {
-    'type': 'object',
-    'properties': {
-        'guests': {
-            'type': 'integer',
-            'minimum': 1,
-            'maximum': 10
-        },
-        'time': {
-            'type': 'string',
-            'format': 'date-time',
-            'duration': {
-                'type': 'number',
-                'minimum': 0.5,
-                'maximum': 6
-            }
-        }
-    }
+  type: 'object',
+  properties: {
+    guests: {
+      type: 'integer',
+      minimum: 1,
+      maximum: 10,
+    },
+    time: {
+      type: 'string',
+      format: 'date-time',
+      duration: {
+        type: 'number',
+        minimum: 0.5,
+        maximum: 6,
+      },
+    },
+  },
 };
 
 const map = (reservation) => {
-    let end = new Date(reservation.time);
-    end.setSeconds(end.getSeconds() + reservation.duration * 60 * 60);
-    return {
-        'start': new Date(reservation.time),
-        'end': end,
-        'guests': reservation.guests
-    };
-}
+  const end = new Date(reservation.time);
+  end.setSeconds(end.getSeconds() + reservation.duration * 60 * 60);
+  return {
+    start: new Date(reservation.time),
+    end,
+    guests: reservation.guests,
+  };
+};
 
-const isReservationValid = (reservation) => {
-    return ajv.validate(reservationSchema, reservation);
-}
+const isReservationValid = reservation => ajv.validate(reservationSchema, reservation);
 
 class ReservationsService {
-    static async update(id, reservationRequest) {
-        if (!isReservationValid(reservationRequest)) {
-            return Promise.reject('Data is not valid');
-        }
-        const reservation = map(reservationRequest);
-        const freeTables = await reservationRepo.getFreeTablesForPeriodExceptCurrent(reservation.start, reservation.end, id);
-        var smalestAvailableTable = freeTables.find((value) => {
-            return value.capacity >= reservationRequest.guests
-        });
-        if (smalestAvailableTable) {
-            reservation['table_id'] = smalestAvailableTable.id;
-            return reservationRepo.update(id, reservation);
-        } else {
-            return Promise.reject('No available table');
-        }
+  static async update(id, reservationRequest) {
+    if (!isReservationValid(reservationRequest)) {
+      return Promise.reject(new Error('Data is not valid'));
     }
-    static async create(reservationRequest) {
-        if (!isReservationValid(reservationRequest)) {
-            return Promise.reject('Data is not valid');
-        }
-        const reservation = map(reservationRequest);
-        const freeTables = await reservationRepo.getFreeTablesForPeriod(reservation.start, reservation.end);
-        var smalestAvailableTable = freeTables.find((value) => {
-            return value.capacity >= reservationRequest.guests
-        });
-        if (smalestAvailableTable) {
-            reservation['table_id'] = smalestAvailableTable.id;
-            return reservationRepo.create(reservation);
-        } else {
-            return Promise.reject('No available table');
-        }
+    const reservation = map(reservationRequest);
+    const freeTables = await reservationRepo
+      .getFreeTablesForPeriodExceptCurrent(reservation.start, reservation.end, id);
+    const smalestAvailableTable = freeTables
+      .find(value => value.capacity >= reservationRequest.guests);
+    if (smalestAvailableTable) {
+      reservation.table_id = smalestAvailableTable.id;
+      return reservationRepo.update(id, reservation);
     }
-    static async getInfo(id) {
+    return Promise.reject(new Error('No available table'));
+  }
 
-        var reservation = await reservationRepo.getInfo(id);
-        if (!reservation) {
-            return;
-        }
+  static async create(reservationRequest) {
+    if (!isReservationValid(reservationRequest)) {
+      return Promise.reject(new Error('Data is not valid'));
+    }
+    const reservation = map(reservationRequest);
+    const freeTables = await reservationRepo
+      .getFreeTablesForPeriod(reservation.start, reservation.end);
+    const smalestAvailableTable = freeTables
+      .find(value => value.capacity >= reservationRequest.guests);
+    if (smalestAvailableTable) {
+      reservation.table_id = smalestAvailableTable.id;
+      return reservationRepo.create(reservation);
+    }
+    return Promise.reject(new Error('No available table'));
+  }
 
-        return {
-            "reservation": {
-                "id": id,
-                "guests": reservation.guests,
-                "start": reservation.start,
-                "end": reservation.end,
-                "table": {
-                    "number": reservation.number,
-                    "capacity": reservation.capacity
-                }
-            }
-        };
+  static async getInfo(id) {
+    const reservation = await reservationRepo.getInfo(id);
+    if (reservation) {
+      return {
+        reservation: {
+          id,
+          guests: reservation.guests,
+          start: reservation.start,
+          end: reservation.end,
+          table: {
+            number: reservation.number,
+            capacity: reservation.capacity,
+          },
+        },
+      };
     }
-    static delete(id) {
-        return reservationRepo.delete(id);
-    }
+    return null;
+  }
+
+  static delete(id) {
+    return reservationRepo.delete(id);
+  }
 }
 
 module.exports = ReservationsService;
