@@ -68,7 +68,6 @@ describe('routes : reservations', () => {
       request(app)
         .post('/api/reservations')
         .send({ reservation: { guests: 1, time: '2018-05-17T18:48:00Z', duration: 1.5 } })
-        // .set('Content-Type', 'application/json')
         .expect(201)
         .end((err, resp) => {
           if (err) return done(err);

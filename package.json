@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "integrationTest": "node ./node_modules/mocha/bin/mocha test/integration/main.test.js --reporter spec",
-    "test": "node ./node_modules/mocha/bin/mocha tests/unit/*/*.test.js --reporter spec",
+    "test": "node ./node_modules/mocha/bin/mocha test/unit/*.test.js --reporter spec",
     "start": "node index.js"
   },
   "keywords": [],
