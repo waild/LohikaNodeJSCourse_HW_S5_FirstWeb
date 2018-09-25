@@ -1,27 +1,10 @@
 const Ajv = require('ajv');
 const reservationRepo = require('../repositories/reservationRepo');
+const NotFoundError = require('../infrastracture/customErrors/notFoundError');
 
 const ajv = new Ajv();
 
-const reservationSchema = {
-  type: 'object',
-  properties: {
-    guests: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 10,
-    },
-    time: {
-      type: 'string',
-      format: 'date-time',
-      duration: {
-        type: 'number',
-        minimum: 0.5,
-        maximum: 6,
-      },
-    },
-  },
-};
+const { reservationSchema } = require('../validations/validationSchemas');
 
 const map = (reservation) => {
   const end = new Date(reservation.time);
@@ -49,7 +32,7 @@ class ReservationsService {
       reservation.table_id = smalestAvailableTable.id;
       return reservationRepo.update(id, reservation);
     }
-    return Promise.reject(new Error('No available table'));
+    return Promise.reject(new NotFoundError('No available table'));
   }
 
   static async create(reservationRequest) {
@@ -65,7 +48,7 @@ class ReservationsService {
       reservation.table_id = smalestAvailableTable.id;
       return reservationRepo.create(reservation);
     }
-    return Promise.reject(new Error('No available table'));
+    return Promise.reject(new NotFoundError('No available table'));
   }
 
   static async getInfo(id) {

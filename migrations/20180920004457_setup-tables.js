@@ -44,5 +44,5 @@ exports.up = function (knex) {
 };
 
 exports.down = function (knex) {
-  return knex('tables').whereIn('number', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).delete();
+  return knex('reservations').truncate().then(() => { knex('tables').truncate() ;});
 };
