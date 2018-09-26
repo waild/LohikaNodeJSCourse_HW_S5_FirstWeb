@@ -6,18 +6,25 @@
   "scripts": {
     "integrationTest": "node ./node_modules/mocha/bin/mocha test/integration/main.test.js --reporter spec",
     "test": "node ./node_modules/mocha/bin/mocha test/unit/*.test.js --reporter spec",
-    "start": "node index.js"
+    "start": "node index.js",
+    "migrate:make": "./node_modules/.bin/knex migrate:make",
+    "migrate:latest": "./node_modules/.bin/knex migrate:latest",
+    "migrate:rollback": "./node_modules/.bin/knex migrate:rollback",
+    "seed:make": "./node_modules/.bin/knex seed:make",
+    "seed:run": "./node_modules/.bin/knex seed:run"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ajv": "6.5.3",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.3",
     "knex": "^0.15.2",
     "pg": "^7.4.3",
-    "ajv": "6.5.3"
+    "request": "^2.88.0",
+    "request-promise": "4.2.2"
   },
   "devDependencies": {
     "assert": "^1.4.1",
