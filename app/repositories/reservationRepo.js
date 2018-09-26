@@ -22,6 +22,14 @@ class ReservationsRepo {
       .update(reservation);
   }
 
+  static updateOrderUri(id, orderUri) {
+    return knex('reservations')
+      .where({
+        id,
+      })
+      .update({ orderUri });
+  }
+
   static create(reservation) {
     return knex('reservations')
       .insert(reservation);

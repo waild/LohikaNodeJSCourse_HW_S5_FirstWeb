@@ -1,4 +1,5 @@
 const reservationService = require('../services/reservationsService');
+const orderService = require('../services/orderService');
 const NotFoundError = require('../infrastracture/customErrors/notFoundError');
 
 class Reservations {
@@ -51,8 +52,41 @@ class Reservations {
         } else {
           res.sendStatus(404);
         }
-      }).catch(() => {
-        res.sendStatus(400);
+      }).catch((err) => {
+        if (err instanceof NotFoundError) {
+          return res.status(404).json({ error: err.message });
+        }
+        return res.status(400).json({ error: err.message });
+      });
+  }
+
+  static createOrders(req, res) {
+    orderService
+      .createOrder(req.params.reservation_id, req.body)
+      .then(() => {
+        res.sendStatus(201);
+      }).catch((err) => {
+        if (err instanceof NotFoundError) {
+          return res.status(404).json({ error: err.message });
+        }
+        return res.status(400).json({ error: err.message });
+      });
+  }
+
+  static getOrders(req, res) {
+    orderService
+      .getOrder(req.params.reservation_id)
+      .then((data) => {
+        if (data) {
+          res.json(data);
+        } else {
+          res.sendStatus(404);
+        }
+      }).catch((err) => {
+        if (err instanceof NotFoundError) {
+          return res.status(404).json({ error: err.message });
+        }
+        return res.status(400).json({ error: err.message });
       });
   }
 }
